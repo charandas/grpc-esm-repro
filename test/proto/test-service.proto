@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package grpc_esm_repro.test;
+
+service TestService {
+  rpc whaleSay (WhaleSayRequest) returns (WhaleSayResponse) {}
+}
+
+message WhaleSayRequest {
+}
+
+message WhaleSayResponse {
+  bool status = 1;
+}

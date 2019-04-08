@@ -1,9 +1,24 @@
-import { loadProto, startServer, stopServer } from '../lib'
+import { loadProto as loadProtoFromLib, startServer, stopServer } from '../lib'
 import * as path from 'path'
 import * as grpc from 'grpc'
-import health from 'grpc-health-check/health'
-import healthMessages from 'grpc-health-check/v1/health_pb'
-import series from 'async/series'
+import * as health from 'grpc-health-check/health'
+import *  as healthMessages from 'grpc-health-check/v1/health_pb'
+import { series } from 'async'
+
+import * as protoLoader from '@grpc/proto-loader'
+import * as grpcLibrary from 'grpc'
+
+function loadProto (protoFileName, dir) {
+  const packageDefinition = protoLoader.loadSync(protoFileName, {
+    enums: String,
+    defaults: true,
+    keepCase: true,
+    oneofs: true,
+    includeDirs: [dir]
+  })
+
+  return grpcLibrary.loadPackageDefinition(packageDefinition)
+}
 
 const ServingStatus = healthMessages.HealthCheckResponse.ServingStatus
 
@@ -16,6 +31,12 @@ describe('Grpc Utils Tests', () => {
     const packageDefinition = loadProto('test-service.proto', path.resolve(__dirname, 'proto'))
     expect(packageDefinition.grpc_esm_repro.test.TestService.service).toBeDefined()
   })
+
+  test('can load proto using the function returned by esm wrapped library', () => {
+    const packageDefinition = loadProtoFromLib('test-service.proto', path.resolve(__dirname, 'proto'))
+    expect(packageDefinition.grpc_esm_repro.test.TestService.service).toBeDefined()
+  })
+
 
   test('can call service', done => {
     expect.assertions(7)
